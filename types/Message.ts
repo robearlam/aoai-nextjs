@@ -1,4 +1,9 @@
 export type Message = {
-    from: string
+    type: MessageType
     text: string
+}
+
+export enum MessageType {
+    User,
+    Assistant
 }

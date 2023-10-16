@@ -1,4 +1,4 @@
-import { Message } from "@/types/Message";
+import { Message, MessageType } from "@/types/Message";
 import { Avatar, CircularProgress, Container, Flex, Hide, Spinner, Text, VisuallyHidden } from "@chakra-ui/react";
 import React from "react";
 
@@ -13,7 +13,7 @@ export const Messages = ({ messages, isLoading }: MessagesProps) => {
         <Flex w="100%" h="80%" flexDirection="column" p="0">
             {messages.map((message, index) => {
             
-                if (message.from == 'clippy') {
+                if (message.type == MessageType.Assistant) {
                     return (
                         <Flex key={index} w="100%" my={5}>
                             <Avatar name="Clippy" src="https://sitecorecontenthub.stylelabs.cloud/api/public/content/eb75f6e802994a59bc4091428c75d336" bg="white" />

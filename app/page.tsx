@@ -1,29 +1,41 @@
 "use client"
 
 import { Messages } from '@/components/Messages';
-import { Message } from '@/types/Message';
+import { Message, MessageType } from '@/types/Message';
 import { Box, Button, Card, CardBody, CardFooter, CardHeader, FormControl, FormLabel, HStack, Heading, Input, InputGroup, InputRightElement, Stack, useBoolean } from '@chakra-ui/react';
-import { mdiCreation } from '@mdi/js';
+import { mdiCreation, mdiDeleteSweep } from '@mdi/js';
 import Icon from '@mdi/react';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export default function Home() {
   const [isLoading, setIsLoading] = useBoolean(false);
   const [question, setQuestion] = useState('');
   const [messages, setMessage] = useState<Message[]>([
       {
-        from: 'clippy',
+        type:  MessageType.Assistant,
         text: 'Hello! I\'m Clippy, your friendly Sitecore helper. How can I help you today?'
       }]
   );
 
   const requestBody = {
-    question: question
+    question: question,
+    history: messages
   };
+
+  const messagesEndRef = useRef(null)
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }
+
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages]);
+
 
   const askQuestion = function() {
     setIsLoading.on();
-    setMessage((old) => [...old, { from: 'user', text: question }]);
+    setMessage((old) => [...old, { type: MessageType.User, text: question }]);
     fetch('/api/chat', {
       method: 'POST',
       body: JSON.stringify(requestBody)
@@ -31,8 +43,16 @@ export default function Home() {
     .then((res) => res.json())
     .then((data:string) => {
       setIsLoading.off();
-      setMessage((old) => [...old, {from: 'clippy', text: data}]);
+      setMessage((old) => [...old, {type: MessageType.Assistant, text: data}]);
     })
+  }
+
+  const resetSession = function() {
+    setMessage(() => [{
+      type:  MessageType.Assistant,
+      text: 'Hello! I\'m Clippy, your friendly Sitecore helper. How can I help you today?'
+    }]);
+    setQuestion('');
   }
   
   return (
@@ -45,10 +65,16 @@ export default function Home() {
           <Heading variant='section'>your friendly Sitecore helper!</Heading>
         </CardHeader>
         <CardBody height={'200px'}>
-          <Messages messages={...messages} isLoading={isLoading} />
+          <Box overflowY="auto" maxHeight="600px">
+            <Messages messages={...messages} isLoading={isLoading} />
+            <div ref={messagesEndRef} />
+          </Box>
         </CardBody>
         
         <CardFooter gap={4}>
+          <Button onClick={resetSession} variant="ai" leftIcon={<Icon path={mdiDeleteSweep} size={1} />} marginTop={'auto'}>
+            Reset
+          </Button>
           <FormControl>
             <Input variant='outline' type='text' placeholder='What would you like to know?' value={question} id='question' onChange={(e) => setQuestion(e.target.value)} />
           </FormControl>
